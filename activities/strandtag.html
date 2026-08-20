@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5c33b">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Ronjos Strandtag-Check</title>
+<style>
+  :root {
+    --bg: #f4ecd8;
+    --bg-deep: #ecdfbe;
+    --sky: #fbf3e0;
+    --surface: #fffbf1;
+    --surface-border: #e8d9b6;
+    --ink: #5b4636;
+    --ink-soft: #8a7358;
+    --duck: #f5c33b;
+    --duck-dark: #dfa726;
+    --bill: #eb8b3b;
+    --heart: #e88a93;
+    --sea: #8fc1be;
+    --sea-deep: #5fa6a0;
+    --shadow: 0 18px 40px -20px rgba(91, 70, 54, 0.35);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #241d13;
+      --bg-deep: #1a150e;
+      --sky: #2c2317;
+      --surface: #362c1e;
+      --surface-border: #4a3c28;
+      --ink: #f3e9d2;
+      --ink-soft: #c9b896;
+      --duck: #f0be3e;
+      --duck-dark: #d29f28;
+      --bill: #e8873a;
+      --heart: #e88a93;
+      --sea: #4d8c87;
+      --sea-deep: #386863;
+      --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #241d13;
+    --bg-deep: #1a150e;
+    --sky: #2c2317;
+    --surface: #362c1e;
+    --surface-border: #4a3c28;
+    --ink: #f3e9d2;
+    --ink-soft: #c9b896;
+    --duck: #f0be3e;
+    --duck-dark: #d29f28;
+    --bill: #e8873a;
+    --heart: #e88a93;
+    --sea: #4d8c87;
+    --sea-deep: #386863;
+    --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.55);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .stage {
+    position: relative;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(20px, 5vw, 48px) 16px 64px;
+    background: linear-gradient(180deg, var(--sky) 0%, var(--sky) 38%, var(--bg) 38%, var(--bg-deep) 100%);
+    overflow: hidden;
+  }
+
+  .home-link {
+    position: relative;
+    z-index: 3;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-decoration: none;
+    background: var(--surface);
+    border: 1.5px solid var(--surface-border);
+    padding: 7px 14px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .home-link:hover { color: var(--ink); }
+
+  .sun {
+    position: absolute;
+    top: clamp(18px, 5vh, 36px);
+    right: clamp(16px, 8vw, 64px);
+    width: clamp(64px, 12vw, 100px);
+    height: clamp(64px, 12vw, 100px);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffe9ad, var(--duck) 70%);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--duck) 18%, transparent);
+    filter: blur(0.2px);
+  }
+
+  .horizon-waves {
+    position: absolute;
+    left: 0;
+    top: 34%;
+    width: 100%;
+    line-height: 0;
+    z-index: 1;
+  }
+  .horizon-waves svg { width: 100%; height: auto; display: block; }
+
+  .float-ducks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .float-duck {
+    position: absolute;
+    opacity: 0.9;
+  }
+  .float-duck.d1 { top: 8%;  left: 8%;  width: 46px; animation: bob 5.5s ease-in-out infinite; }
+  .float-duck.d2 { top: 15%; left: 78%; width: 34px; animation: bob 4.5s ease-in-out infinite -1.2s; }
+  .float-duck.d3 { top: 26%; left: 46%; width: 28px; animation: bob 6s ease-in-out infinite -3s; opacity: 0.7; }
+
+  .float-heart {
+    position: absolute;
+    font-size: 1.3rem;
+    opacity: 0.8;
+  }
+  .float-heart.h1 { top: 4%;  left: 42%; font-size: 1rem;   animation: bob 5s ease-in-out infinite -0.6s; }
+  .float-heart.h2 { top: 34%; left: 86%; font-size: 1.15rem; animation: bob 6.5s ease-in-out infinite -2.4s; opacity: 0.65; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50%      { transform: translateY(-8px) rotate(2deg); }
+    }
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: clamp(10px, 4vh, 28px);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--duck) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--duck-dark) 40%, transparent);
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: clamp(1.7rem, 6vw, 2.35rem);
+    line-height: 1.15;
+    text-align: center;
+    margin: 0 0 6px;
+    text-wrap: balance;
+    font-weight: 800;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+    margin: 0 0 26px;
+    max-width: 34ch;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--surface-border);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    padding: clamp(22px, 6vw, 34px) clamp(20px, 6vw, 30px) 26px;
+    transform: rotate(-0.6deg);
+  }
+
+  .progress {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin-bottom: 20px;
+  }
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--surface-border);
+    transition: background 0.25s, transform 0.25s;
+  }
+  .dot.done { background: var(--duck); transform: scale(1.15); }
+  .dot.current { background: var(--bill); transform: scale(1.3); }
+
+  .question {
+    font-size: clamp(1.15rem, 4.4vw, 1.4rem);
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+    min-height: 5.6em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-wrap: balance;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .btn-yes {
+    font: inherit;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #4a3312;
+    background: linear-gradient(180deg, #ffdd6b, var(--duck));
+    border: none;
+    border-radius: 999px;
+    padding: 15px 40px;
+    cursor: pointer;
+    box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--duck-dark) 70%, transparent);
+    transition: transform 0.15s ease;
+  }
+  .btn-yes:hover { transform: translateY(-2px) scale(1.03); }
+  .btn-yes:active { transform: translateY(0) scale(0.98); }
+  .btn-yes:focus-visible { outline: 3px solid var(--sea-deep); outline-offset: 3px; }
+
+  .dodge-zone {
+    position: relative;
+    width: 100%;
+    height: clamp(110px, 30vw, 130px);
+    margin-top: 14px;
+  }
+
+  .btn-no {
+    position: absolute;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 999px;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: left 0.28s cubic-bezier(.34,1.56,.64,1), top 0.28s cubic-bezier(.34,1.56,.64,1), transform 0.15s;
+    touch-action: none;
+  }
+  .btn-no:focus-visible { outline: 3px solid var(--sea-deep); outline-offset: 3px; }
+
+  .final {
+    display: none;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .final.show { display: flex; }
+  .card.final-mode .quiz-body { display: none; }
+
+  .final-ducks {
+    display: flex;
+    gap: 6px;
+    margin: 4px 0 12px;
+  }
+  .final-ducks svg { width: 44px; animation: bob 3.2s ease-in-out infinite; }
+  .final-ducks svg:nth-child(2) { animation-delay: -1s; }
+  .final-ducks svg:nth-child(3) { animation-delay: -2s; }
+
+  .final h2 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .final p {
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    max-width: 32ch;
+  }
+  .score {
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .btn-again {
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1.5px dashed var(--surface-border);
+    border-radius: 999px;
+    padding: 10px 22px;
+    cursor: pointer;
+  }
+  .btn-again:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+  .wave-bottom {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    line-height: 0;
+    z-index: 0;
+  }
+  .wave-bottom svg { width: 100%; height: auto; display: block; }
+
+  .hearts {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .heart-bit {
+    position: absolute;
+    font-size: 1.1rem;
+    opacity: 0;
+  }
+  .card.final-mode .heart-bit { animation: rise 2.6s ease-out forwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .card.final-mode .heart-bit { opacity: 0.8; animation: none; }
+    .float-duck { animation: none; }
+    .final-ducks svg { animation: none; }
+  }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    15%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-90px) scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <a class="home-link" id="homeLink" href="../home-ronjo.html">← Zurück</a>
+  <script>
+    document.getElementById('homeLink').href =
+      localStorage.getItem('ronjo_profile') === 'me' ? '../home-me.html' : '../home-ronjo.html';
+  </script>
+  <div class="sun"></div>
+
+  <div class="float-ducks">
+    <svg class="float-duck d1" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="75" cy="26" r="2" fill="var(--ink)"/>
+      <path d="M28 48 Q40 40 50 50" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <svg class="float-duck d2" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="75" cy="26" r="2" fill="var(--ink)"/>
+      <path d="M28 48 Q40 40 50 50" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <svg class="float-duck d3" viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/>
+      <path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="75" cy="26" r="2" fill="var(--ink)"/>
+      <path d="M28 48 Q40 40 50 50" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    <span class="float-heart h1" aria-hidden="true">💛</span>
+    <span class="float-heart h2" aria-hidden="true">🧡</span>
+  </div>
+
+  <div class="horizon-waves">
+    <svg viewBox="0 0 400 24" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 12 Q25 22 50 12 T100 12 T150 12 T200 12 T250 12 T300 12 T350 12 T400 12 V24 H0 Z" fill="var(--sea)" opacity="0.55"/>
+    </svg>
+  </div>
+
+  <div class="content">
+    <span class="eyebrow">🌊 Mit Liebe für Ronjo</span>
+    <h1>Auf zum Strand, mein Schatz?</h1>
+    <p class="subtitle">Ein kleiner Liebes-Check vor unserem Strandtag heute. Die Auswahl ist… nun ja, ein kleines bisschen begrenzt, weil ich dich einfach zu gern hab. 💛</p>
+
+    <div class="card" id="card">
+      <div class="quiz-body">
+        <div class="progress" id="progress"></div>
+        <div class="question" id="question"></div>
+        <div class="actions">
+          <button class="btn-yes" id="btnYes">Ja 🌊💛</button>
+          <div class="dodge-zone">
+            <button class="btn-no" id="btnNo">Nein</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="final" id="final">
+        <div class="final-ducks">
+          <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/><circle cx="75" cy="26" r="2" fill="var(--ink)"/></svg>
+          <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/><circle cx="75" cy="26" r="2" fill="var(--ink)"/></svg>
+          <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg"><ellipse cx="46" cy="54" rx="30" ry="20" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><circle cx="70" cy="30" r="15" fill="var(--duck)" stroke="var(--ink)" stroke-width="3"/><path d="M83 30 Q95 28 91 36 Q84 37 83 30Z" fill="var(--bill)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/><circle cx="75" cy="26" r="2" fill="var(--ink)"/></svg>
+        </div>
+        <h2 id="finalTitle">Ronjo, mein Schatz, du hast es geschafft! 🥰</h2>
+        <p><span class="score" id="score"></span> — der Strand (und ich) warten schon auf dich 💛🌊</p>
+        <button class="btn-again" id="btnAgain">Nochmal von vorn, für dich immer wieder 💛</button>
+        <div class="hearts" id="hearts"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wave-bottom">
+    <svg viewBox="0 0 400 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 20 Q25 34 50 20 T100 20 T150 20 T200 20 T250 20 T300 20 T350 20 T400 20 V40 H0 Z" fill="var(--sea-deep)" opacity="0.5"/>
+    </svg>
+  </div>
+</div>
+
+<script>
+  const questions = [
+    "Ronjo, mein Schatz — bist du bereit für den schönsten Strandtag mit mir? 💛",
+    "Schmierst du mir ganz liebevoll den Rücken mit Sonnencreme ein?",
+    "Teilst du dein Eis mit mir, wenn ich dich ganz doll lieb anschaue?",
+    "Bauen wir zusammen die schönste Sandburg, die der Strand je gesehen hat?",
+    "Gehen wir zusammen Fischis gucken? 🐟",
+    "Bist du für immer meine Handtuch-Nachbarin?",
+    "Machen wir zum Sonnenuntergang ein Foto von uns beiden?",
+    "Wird heute, mit dir an meiner Seite, der perfekte Tag? 🥰"
+  ];
+
+  let index = 0;
+  let yesCount = 0;
+
+  const progressEl = document.getElementById('progress');
+  const questionEl = document.getElementById('question');
+  const cardEl = document.getElementById('card');
+  const finalEl = document.getElementById('final');
+  const btnYes = document.getElementById('btnYes');
+  const btnNo = document.getElementById('btnNo');
+  const btnAgain = document.getElementById('btnAgain');
+  const scoreEl = document.getElementById('score');
+  const finalTitleEl = document.getElementById('finalTitle');
+  const heartsEl = document.getElementById('hearts');
+
+  function renderProgress() {
+    progressEl.innerHTML = '';
+    for (let i = 0; i < questions.length; i++) {
+      const dot = document.createElement('span');
+      dot.className = 'dot' + (i < index ? ' done' : i === index ? ' current' : '');
+      progressEl.appendChild(dot);
+    }
+  }
+
+  function centerNo() {
+    const zone = btnNo.parentElement;
+    requestAnimationFrame(() => {
+      const zw = zone.clientWidth;
+      const zh = zone.clientHeight;
+      const bw = btnNo.offsetWidth || 90;
+      const bh = btnNo.offsetHeight || 44;
+      btnNo.style.left = Math.max(0, (zw - bw) / 2) + 'px';
+      btnNo.style.top = Math.max(0, (zh - bh) / 2) + 'px';
+    });
+  }
+
+  function renderQuestion() {
+    questionEl.textContent = questions[index];
+    renderProgress();
+    centerNo();
+  }
+
+  function dodge() {
+    const zone = btnNo.parentElement;
+    const zw = zone.clientWidth;
+    const zh = zone.clientHeight;
+    const bw = btnNo.offsetWidth;
+    const bh = btnNo.offsetHeight;
+    const maxX = Math.max(0, zw - bw);
+    const maxY = Math.max(0, zh - bh);
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+    btnNo.style.left = x + 'px';
+    btnNo.style.top = y + 'px';
+  }
+
+  function nextQuestion(wasYes) {
+    if (wasYes) yesCount++;
+    index++;
+    if (index >= questions.length) {
+      showFinal();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  function showFinal() {
+    cardEl.classList.add('final-mode');
+    finalEl.classList.add('show');
+    scoreEl.textContent = yesCount + '/' + questions.length + ' Ja';
+    if (yesCount === questions.length) {
+      finalTitleEl.textContent = 'Ronjo, mein Schatz, du hast es geschafft! 🥰';
+    } else {
+      finalTitleEl.textContent = 'Ronjo, fast geschafft, mein Schatz! 🥰';
+    }
+    spawnHearts();
+  }
+
+  function spawnHearts() {
+    heartsEl.innerHTML = '';
+    const items = ['💛', '🧡', '🤍'];
+    for (let i = 0; i < 10; i++) {
+      const span = document.createElement('span');
+      span.className = 'heart-bit';
+      span.textContent = items[i % items.length];
+      span.style.left = (5 + Math.random() * 90) + '%';
+      span.style.bottom = (Math.random() * 20) + '%';
+      span.style.animationDelay = (Math.random() * 0.6) + 's';
+      heartsEl.appendChild(span);
+    }
+  }
+
+  function resetQuiz() {
+    index = 0;
+    yesCount = 0;
+    cardEl.classList.remove('final-mode');
+    finalEl.classList.remove('show');
+    renderQuestion();
+  }
+
+  btnYes.addEventListener('click', () => nextQuestion(true));
+  btnNo.addEventListener('click', () => nextQuestion(false));
+  btnNo.addEventListener('pointerenter', dodge);
+  btnNo.addEventListener('touchstart', (e) => { e.preventDefault(); dodge(); }, { passive: false });
+  btnAgain.addEventListener('click', resetQuiz);
+  window.addEventListener('resize', () => { if (!finalEl.classList.contains('show')) centerNo(); });
+
+  renderQuestion();
+</script>
+</body>
+</html>
